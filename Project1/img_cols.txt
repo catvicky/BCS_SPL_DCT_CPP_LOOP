@@ -1,0 +1,67 @@
+
+Mat im2cols(const Mat& x, const int& block_size)
+{
+	Mat roi(block_size, block_size, CV_32F);
+	int M = x.rows, N = x.cols;
+
+	// 当矩阵x可以划分成整数个块时
+	int MM = block_size * block_size;
+	int NN = M * N / (block_size * block_size);
+
+	// 构造返回矩阵
+	Mat ret = Mat::zeros(MM, NN, CV_32F);
+	int i = 0; int j = 0;
+	int iii = 0;
+	for (j = 0; j < M / block_size; ++j) {		// 行
+		for (i = 0; i < N / block_size; ++i) {  // 列
+			roi = x(Rect(i * block_size, j * block_size, block_size, block_size));
+			//cout << roi << endl;
+
+			float temp[4096] = { 0 };	// 最大64分块
+			for (int ii = 0; ii < roi.rows; ii++)
+			for (int jj = 0; jj < roi.cols; jj++)
+				*(temp + ii*roi.cols + jj) = roi.at<float>(jj, ii);
+			// 输出测试
+			for (int jjj = 0; jjj < block_size * block_size; jjj++) {
+				// 把数组temp的值放到ret中
+				ret.at<float>(jjj, iii) = temp[jjj];
+			}
+			++iii;
+			//cout << ret << endl;
+		}
+	}
+	return ret;
+}
+
+
+Mat col2im(const Mat& y, const int& block_size,
+	const int& num_rows, const int& num_cols)
+{
+	int MM = y.rows, NN = y.cols;
+	Mat x = Mat::zeros(num_rows, num_cols, CV_32F);
+	int blocks = sqrt(double(NN));
+
+	int a = 0;	int b = 0;
+	for (int i = 0; i < NN; ++i) {
+		Mat temp = Mat::zeros(block_size, block_size, CV_32F);
+		int jj = -1;
+		for (int j = 0; j < MM; ++j) {
+			if (j % block_size == 0)
+				++jj;
+			temp.at<float>(j % block_size, jj) = y.at<float>(j, i);
+		}
+		//cout << temp << endl;
+		// 将block_size*block_size添加到x
+		if (i != 0 && i % blocks == 0) {
+			a += block_size;	b = 0;
+		}
+		
+		///////////
+		Mat imageROI = x(Rect(b, a, block_size, block_size));
+		addWeighted(imageROI, 0, temp, 1, 0., imageROI);
+		////////
+		//cout << x << endl;
+		b += block_size;
+	}
+	return x;
+}

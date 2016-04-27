@@ -1,0 +1,113 @@
+#pragma warning (disable : 4996)
+#include<iostream>
+#include"SPL_Algorithm.h"
+
+#include <opencv2/imgproc/imgproc.hpp>  // Gaussian Blur
+#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat, Scalar)
+#include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
+#include <cv.hpp>
+
+using namespace std;
+using namespace cv;
+
+/*
+Mat BCS_SPL_GenerateProjection(int block_size, double fs)
+{
+	int N = block_size * block_size;
+	int M = round(fs * N);
+	
+	// 生成高斯矩阵
+	Mat mean = Mat::zeros(1, 1, CV_64FC1);
+	Mat sigma = Mat::ones(1, 1, CV_64FC1);
+	Mat matrix(N, N, CV_64FC1);
+	randn(matrix, mean, sigma);
+
+	// 对矩阵正交化处理
+	Mat w = Mat(N, 1, CV_64F);
+	Mat u = Mat(N, 1, CV_64F);
+	Mat vt = Mat(N, N, CV_64F);
+	SVD::compute(matrix, w, u, vt);//u
+	Mat y = u(Rect(0, 0, u.cols, M));
+	
+	return y;
+}
+
+
+int main()
+{
+	const double fs = 0.3;	    // 采样率
+	const int block_size = 32;  // 分块大小
+
+	// 获取原图像
+	string name = "lena";
+	string image_name = name + ".png";
+	Mat original_img = imread(image_name, 0);	// 以灰度图像读入
+	original_img.convertTo(original_img, CV_32F);
+	int img_rows = original_img.rows;
+	int img_cols = original_img.cols;
+
+	// 得到高斯测量矩阵
+	Mat Phi= BCS_SPL_GenerateProjection(block_size, fs);
+
+
+	return 0;
+}
+*/
+
+
+//用一个一维数组来初始化矩阵
+void InitMat(Mat& m, float* num)
+{
+	for (int i = 0; i<m.rows; i++)
+		for (int j = 0; j<m.cols; j++)
+			m.at<float>(i, j) = *(num + i*m.cols + j);
+}
+int main()
+{
+	int N = 3;
+	float num[] = { 1, 2, 3, 2, 4, 8, 9, 8, 7 };
+	Mat matrix = Mat::zeros(N, N, CV_32F);
+	InitMat(matrix, num);
+	cout << matrix << endl;
+
+	// 对矩阵正交化处理
+	Mat w = Mat(N, 1, CV_64F);
+	Mat u = Mat(N, 1, CV_64F);
+	Mat vt = Mat(N, N, CV_64F);
+	SVD::compute(matrix, w, u, vt);
+	
+	cout << matrix << endl;
+	cout << w << endl;
+	cout << u << endl;
+	cout << vt << endl;
+	int M = 2;
+	Mat y = u(Rect(0, 0, u.cols, M));
+	cout << y << endl;
+	getchar();
+
+
+}
+
+
+int main()
+{
+	const int rows_cols = 6;
+	const int nums = rows_cols * rows_cols;
+	float num[nums];
+	for (int i = 0; i < nums; i++) {
+		num[i] = i;
+	}
+	Mat matrix = Mat::zeros(rows_cols, rows_cols, CV_32F);
+	InitMat(matrix, num);
+	cout << matrix << endl;
+	int block_size = 2;
+	Mat xxx = Mat::zeros(block_size * block_size,
+		rows_cols * rows_cols / (block_size * block_size), CV_32F);
+	xxx = im2cols(matrix, block_size);
+	cout << xxx << endl;
+	Mat yyy = Mat::zeros(rows_cols, rows_cols, CV_32F);
+	yyy = col2im(xxx, block_size, rows_cols, rows_cols);
+	cout << yyy << endl;
+
+	getchar();
+}
