@@ -3,7 +3,7 @@
 
 参考文献：http://my.ece.msstate.edu/faculty/fowler/BCSSPL/
 
-#pragma warning (disable : 4996)
+···#pragma warning (disable : 4996)
 #include<algorithm>
 #include<iostream>
 #include<cmath>
@@ -82,3 +82,4 @@ int main()
 	getchar();
 	return 0;
 }
+···
